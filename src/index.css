@@ -15,3 +15,56 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
     monospace;
 }
+
+.hexagon {
+  width: 100px;
+  height: 55px;
+  background: red;
+  position: absolute;
+}
+.hexagon:before {
+  content: "";
+  position: absolute;
+  top: -25px;
+  left: 0;
+  width: 0;
+  height: 0;
+  border-left: 50px solid transparent;
+  border-right: 50px solid transparent;
+  border-bottom: 25px solid red;
+}
+.hexagon:after {
+  content: "";
+  position: absolute;
+  bottom: -25px;
+  left: 0;
+  width: 0;
+  height: 0;
+  border-left: 50px solid transparent;
+  border-right: 50px solid transparent;
+  border-top: 25px solid red;
+}
+.hex1 {
+  top: 400px;
+  left: 200px;
+}
+.hex2 {
+  top: 485px;
+  left: 300px;
+}
+.hex3 {
+  top: 600px;
+  left: 300px;
+}
+.hex4 {
+  top: 700px;
+  left: 200px;
+}
+.hex5 {
+  top: 600px;
+  left: 100px;
+}
+.hex6 {
+  top: 485px;
+  left: 100px;
+}

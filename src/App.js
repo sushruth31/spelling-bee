@@ -1,4 +1,5 @@
 import Header from "./header"
+import Main from "./main"
 import Modal from "./modal"
 import { ModalProvider } from "./modalcontext"
 
@@ -8,6 +9,7 @@ function App() {
       <ModalProvider>
         <Modal />
         <Header />
+        <Main />
       </ModalProvider>
     </>
   )

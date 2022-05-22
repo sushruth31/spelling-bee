@@ -1,14 +1,13 @@
 import { useEffect, useRef, useState } from "react"
 
 export default function useVis(modalRefs = [], init = false) {
-  let fRef = useRef(null)
   let [visible, setVisible] = useState(init)
   let show = () => setVisible(true)
   let hide = () => setVisible(false)
   let toggle = () => setVisible(p => !p)
 
   useEffect(() => {
-    fRef.current = e => {
+    let handler = e => {
       if (
         modalRefs.some(
           ref => ref.current === e.target || ref.current?.contains(e.target)
@@ -18,8 +17,8 @@ export default function useVis(modalRefs = [], init = false) {
       }
       hide()
     }
-    window.addEventListener("click", fRef.current)
-    return () => window.removeEventListener("click", fRef.current)
+    window.addEventListener("click", handler)
+    return () => window.removeEventListener("click", handler)
   }, [])
 
   return { visible, show, hide, toggle }
