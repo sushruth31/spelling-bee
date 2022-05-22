@@ -1,9 +1,14 @@
 import Header from "./header"
+import Modal from "./modal"
+import { ModalProvider } from "./modalcontext"
 
 function App() {
   return (
     <>
-      <Header />
+      <ModalProvider>
+        <Modal />
+        <Header />
+      </ModalProvider>
     </>
   )
 }

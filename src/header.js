@@ -1,16 +1,9 @@
 import moment from "moment"
 import { useRef, forwardRef } from "react"
-import useModal from "./useModal"
+import { useModal } from "./modalcontext"
+import useVis from "./useVis"
 
-const Button = forwardRef((props, ref) => {
-  return (
-    <button
-      ref={ref}
-      className="text-lg h-14 hover:bg-zinc-100 rounded px-4"
-      {...props}
-    />
-  )
-})
+const btnClassName = "text-lg h-14 hover:bg-zinc-100 rounded px-4"
 
 const Menu = forwardRef(({ isVisible }, ref) => {
   return (
@@ -34,7 +27,8 @@ const Menu = forwardRef(({ isVisible }, ref) => {
 export default function Header() {
   let ref = useRef(null)
   let listRef = useRef(null)
-  let modal = useModal([ref, listRef])
+  let modal = useVis([ref, listRef])
+  let { handleModal } = useModal()
 
   return (
     <>
@@ -51,11 +45,16 @@ export default function Header() {
 
       <div className="w-screen flex  items-center h-16 border border-b-black">
         <div className="flex px-10 items-center justify-around w-full">
-          <Button>Yesterday's Answers</Button>
-          <Button>Todays' Hints</Button>
-          <Button ref={ref} onClick={modal.toggle}>
+          <button
+            onClick={handleModal(<div>Hello world</div>)}
+            className={btnClassName}
+          >
+            Yesterday's Answers
+          </button>
+          <button className={btnClassName}>Todays' Hints</button>
+          <button className={btnClassName} ref={ref} onClick={modal.toggle}>
             More
-          </Button>
+          </button>
         </div>
       </div>
     </>

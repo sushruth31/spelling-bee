@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react"
 
-export default function useModal(modalRefs = [], init = false) {
+export default function useVis(modalRefs = [], init = false) {
   let fRef = useRef(null)
   let [visible, setVisible] = useState(init)
   let show = () => setVisible(true)
@@ -11,7 +11,7 @@ export default function useModal(modalRefs = [], init = false) {
     fRef.current = e => {
       if (
         modalRefs.some(
-          ref => ref.current === e.target || ref.current.contains(e.target)
+          ref => ref.current === e.target || ref.current?.contains(e.target)
         )
       ) {
         return
