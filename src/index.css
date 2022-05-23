@@ -19,8 +19,9 @@ code {
 .hexagon {
   width: 100px;
   height: 55px;
-  background: red;
+  background: #e6e6e6;
   position: absolute;
+  z-index: -1;
 }
 .hexagon:before {
   content: "";
@@ -31,7 +32,8 @@ code {
   height: 0;
   border-left: 50px solid transparent;
   border-right: 50px solid transparent;
-  border-bottom: 25px solid red;
+  border-bottom: 25px solid #e6e6e6;
+  z-index: -1;
 }
 .hexagon:after {
   content: "";
@@ -42,29 +44,38 @@ code {
   height: 0;
   border-left: 50px solid transparent;
   border-right: 50px solid transparent;
-  border-top: 25px solid red;
+  border-top: 25px solid #e6e6e6;
+  z-index: -1;
 }
-.hex1 {
-  top: 400px;
-  left: 200px;
+
+.hexagonCenter {
+  width: 100px;
+  height: 55px;
+  background: #f7da21;
+  position: absolute;
+  z-index: -1;
 }
-.hex2 {
-  top: 485px;
-  left: 300px;
+.hexagonCenter:before {
+  content: "";
+  position: absolute;
+  top: -25px;
+  left: 0;
+  width: 0;
+  height: 0;
+  border-left: 50px solid transparent;
+  border-right: 50px solid transparent;
+  border-bottom: 25px solid #f7da21;
+  z-index: -1;
 }
-.hex3 {
-  top: 600px;
-  left: 300px;
-}
-.hex4 {
-  top: 700px;
-  left: 200px;
-}
-.hex5 {
-  top: 600px;
-  left: 100px;
-}
-.hex6 {
-  top: 485px;
-  left: 100px;
+.hexagonCenter:after {
+  content: "";
+  position: absolute;
+  bottom: -25px;
+  left: 0;
+  width: 0;
+  height: 0;
+  border-left: 50px solid transparent;
+  border-right: 50px solid transparent;
+  border-top: 25px solid #f7da21;
+  z-index: -1;
 }
