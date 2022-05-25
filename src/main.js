@@ -1,5 +1,9 @@
 import { useEffect, useRef, useState } from "react"
 import useVis from "./useVis"
+import englishWords from "./englishwords"
+import useInterval from "./useInterval"
+import RotateRightIcon from "@mui/icons-material/RotateRight"
+
 const NUM_LETTERS = 7
 
 function shuffle(arr) {
@@ -44,6 +48,7 @@ function createLettersOfTheDay() {
     ...getUniqueLetters(vowels, numOfVowels),
     ...getUniqueLetters(consts, NUM_LETTERS - numOfVowels),
   ])
+
   let centerLetter = letters.shift()
   return {
     letters,
@@ -57,6 +62,12 @@ let createStyle = (top, left, style) => ({
   left,
   ...style,
 })
+
+function isWordInDict(word) {
+  //check this word against words in dict
+  return englishWords.some(word => word.toLowerCase() === word.toLowerCase())
+}
+
 export default function Main() {
   let [lettersOfTheDay, setLettersOfTheDay] = useState(createLettersOfTheDay)
   let [attempts, setAttempts] = useState([])
@@ -81,16 +92,25 @@ export default function Main() {
   let hexStyles = positions.map(p => createStyle(...p))
   let centerStyle = createStyle(hCenter, wMid, {})
   let [inputText, setInputText] = useState([])
-  let caretVis = useVis()
+  let [delay, setDelay] = useState(500)
+  let caretVis = useVis(true)
+  let [error, setError] = useState("")
 
   let deleteLetter = () => {
     caretVis.show()
     setInputText(p => p.slice(0, p.length - 1))
   }
-  let addLetter = ltr => {
-    caretVis.show()
+  let addLetter = ltr => () => {
+    setDelay(null)
     setInputText(p => [...p, ltr])
   }
+
+  //reinstate the caret blink
+  useEffect(() => {
+    setDelay(500)
+  }, [inputText])
+
+  useInterval(caretVis.toggle, delay, caretVis.show)
 
   let handleKey = e => {
     console.log(e.key)
@@ -99,7 +119,7 @@ export default function Main() {
     if (key === "BACKSPACE" || key === "DELETE") {
       return deleteLetter()
     }
-    addLetter(key)
+    addLetter(key)()
   }
 
   useEffect(() => {
@@ -117,13 +137,37 @@ export default function Main() {
     return "#e6e6e6"
   }
 
-  useEffect(() => {
-    let id = setInterval(caretVis.toggle, 500)
-    return () => clearInterval(id)
-  }, [])
+  let fireError = txt => {
+    setError(txt)
+    setTimeout(() => {
+      setError("")
+    }, 1000)
+  }
+
+  let bottomBtnClassName =
+    "border border-zinc-300 rounded-3xl py-2 px-6 active:bg-zinc-300"
+
+  let handleEnter = () => {
+    if (!inputText.length) return
+
+    if (inputText.length < 4) {
+      return fireError("Too Short")
+    }
+    if (!isWordInDict(inputText.join(""))) {
+      return fireError("Not in Dict")
+    }
+    addToWordList()
+  }
+
+  function addToWordList() {}
 
   return (
     <div className="flex flex-col items-center justify-center p-20">
+      {error && (
+        <div className="absolute bg-black text-white top-52 rounded p-2">
+          {error}
+        </div>
+      )}
       <div className="w-80 h-10 flex items-center px-4">
         {inputText.map(ltr => (
           <div
@@ -139,7 +183,7 @@ export default function Main() {
         {lettersOfTheDay.letters.map((ltr, i) => {
           return (
             <button
-              onClick={() => addLetter(ltr)}
+              onClick={addLetter(ltr)}
               style={hexStyles[i]}
               className="hexagon flex items-center justify-center"
             >
@@ -148,13 +192,33 @@ export default function Main() {
           )
         })}
         <button
-          onClick={() => addLetter(lettersOfTheDay.centerLetter)}
+          onClick={addLetter(lettersOfTheDay.centerLetter)}
           className="hexagonCenter flex items-center justify-center "
           style={centerStyle}
         >
           <div className="font-bold text-3xl">
             {lettersOfTheDay.centerLetter}
           </div>
+        </button>
+      </div>
+
+      <div className="flex absolute bottom-28 items-center w-[80%] justify-around">
+        <button onClick={deleteLetter} className={bottomBtnClassName}>
+          Delete
+        </button>
+        <button
+          onClick={() =>
+            setLettersOfTheDay(p => ({
+              ...p,
+              letters: shuffle(p.letters),
+            }))
+          }
+          className={bottomBtnClassName}
+        >
+          <RotateRightIcon />
+        </button>
+        <button onClick={handleEnter} className={bottomBtnClassName}>
+          Enter
         </button>
       </div>
     </div>

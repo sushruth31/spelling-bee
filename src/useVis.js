@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react"
 
-export default function useVis(modalRefs = [], init = false) {
+export default function useVis(init = false, modalRefs = []) {
   let [visible, setVisible] = useState(init)
   let show = () => setVisible(true)
   let hide = () => setVisible(false)

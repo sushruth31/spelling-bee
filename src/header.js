@@ -27,7 +27,7 @@ const Menu = forwardRef(({ isVisible }, ref) => {
 export default function Header() {
   let ref = useRef(null)
   let listRef = useRef(null)
-  let modal = useVis([ref, listRef])
+  let modal = useVis(false, [ref, listRef])
   let { handleModal } = useModal()
 
   return (
