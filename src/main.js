@@ -3,6 +3,7 @@ import useVis from "./useVis"
 import englishWords from "./englishwords"
 import useInterval from "./useInterval"
 import RotateRightIcon from "@mui/icons-material/RotateRight"
+import GuessedWords from "./guessedwords"
 
 const NUM_LETTERS = 7
 
@@ -49,6 +50,10 @@ function createLettersOfTheDay() {
     ...getUniqueLetters(consts, NUM_LETTERS - numOfVowels),
   ])
 
+  if (createWordBank(letters) < 5) {
+    return createLettersOfTheDay()
+  }
+
   let centerLetter = letters.shift()
   return {
     letters,
@@ -63,14 +68,31 @@ let createStyle = (top, left, style) => ({
   ...style,
 })
 
-function isWordInDict(word) {
+function isWordInDict(word, dict) {
   //check this word against words in dict
-  return englishWords.some(word => word.toLowerCase() === word.toLowerCase())
+  return dict.some(w => w.toLowerCase() === word.toLowerCase())
+}
+
+function createWordBank(lettersOfTheDay) {
+  return englishWords.filter(word =>
+    word
+      .split("")
+      .every(ltr =>
+        lettersOfTheDay.map(l => l.toLowerCase()).includes(ltr.toLowerCase())
+      )
+  )
 }
 
 export default function Main() {
   let [lettersOfTheDay, setLettersOfTheDay] = useState(createLettersOfTheDay)
-  let [attempts, setAttempts] = useState([])
+  let drawer = useVis()
+  let [wordBank, setWordBank] = useState(() =>
+    createWordBank([
+      ...lettersOfTheDay.letters,
+      ...lettersOfTheDay.centerLetter,
+    ])
+  )
+  let [guessedWords, setGuessedWords] = useState([])
   let hTop = "445px"
   let h1 = "495px"
   let h2 = "600px"
@@ -113,7 +135,6 @@ export default function Main() {
   useInterval(caretVis.toggle, delay, caretVis.show)
 
   let handleKey = e => {
-    console.log(e.key)
     if (e.key === "Control" || e.key === "Shift" || e.key === "Meta") return
     let key = e.key.toUpperCase()
     if (key === "BACKSPACE" || key === "DELETE") {
@@ -139,9 +160,8 @@ export default function Main() {
 
   let fireError = txt => {
     setError(txt)
-    setTimeout(() => {
-      setError("")
-    }, 1000)
+    setTimeout(() => setInputText([]), 1000)
+    setTimeout(() => setError(""), 500)
   }
 
   let bottomBtnClassName =
@@ -153,74 +173,90 @@ export default function Main() {
     if (inputText.length < 4) {
       return fireError("Too Short")
     }
-    if (!isWordInDict(inputText.join(""))) {
+    //check if word is in guesed words
+    if (
+      guessedWords.some(
+        word => word.toLowerCase() === inputText.join("").toLowerCase()
+      )
+    ) {
+      return fireError("You already guessed this word!")
+    }
+
+    if (!isWordInDict(inputText.join(""), wordBank)) {
       return fireError("Not in Dict")
     }
+
     addToWordList()
   }
 
-  function addToWordList() {}
+  function addToWordList() {
+    setGuessedWords(p => [...p, inputText.join("")])
+    setInputText([])
+  }
 
   return (
-    <div className="flex flex-col items-center justify-center p-20">
-      {error && (
-        <div className="absolute bg-black text-white top-52 rounded p-2">
-          {error}
-        </div>
-      )}
-      <div className="w-80 h-10 flex items-center px-4">
-        {inputText.map(ltr => (
-          <div
-            style={{ color: textColor(ltr) }}
-            className={`font-bold text-3xl`}
-          >
-            {ltr}
+    <>
+      <GuessedWords guessedWords={guessedWords} />
+      <div className="flex flex-col items-center justify-center p-20">
+        {error && (
+          <div className="absolute bg-black text-white top-52 rounded p-2">
+            {error}
           </div>
-        ))}
-        {caretVis.visible && <div className="h-full w-1 bg-[#f7da21]"></div>}
-      </div>
-      <div style={{ top: 200 }}>
-        {lettersOfTheDay.letters.map((ltr, i) => {
-          return (
-            <button
-              onClick={addLetter(ltr)}
-              style={hexStyles[i]}
-              className="hexagon flex items-center justify-center"
+        )}
+        <div className="w-80 h-10 flex items-center px-4">
+          {inputText.map(ltr => (
+            <div
+              style={{ color: textColor(ltr) }}
+              className={`font-bold text-3xl`}
             >
-              <div className="font-bold text-3xl">{ltr}</div>
-            </button>
-          )
-        })}
-        <button
-          onClick={addLetter(lettersOfTheDay.centerLetter)}
-          className="hexagonCenter flex items-center justify-center "
-          style={centerStyle}
-        >
-          <div className="font-bold text-3xl">
-            {lettersOfTheDay.centerLetter}
-          </div>
-        </button>
-      </div>
+              {ltr}
+            </div>
+          ))}
+          {caretVis.visible && <div className="h-full w-1 bg-[#f7da21]"></div>}
+        </div>
+        <div style={{ top: 200 }}>
+          {lettersOfTheDay.letters.map((ltr, i) => {
+            return (
+              <button
+                onClick={addLetter(ltr)}
+                style={hexStyles[i]}
+                className="hexagon flex items-center justify-center"
+              >
+                <div className="font-bold text-3xl">{ltr}</div>
+              </button>
+            )
+          })}
+          <button
+            onClick={addLetter(lettersOfTheDay.centerLetter)}
+            className="hexagonCenter flex items-center justify-center "
+            style={centerStyle}
+          >
+            <div className="font-bold text-3xl">
+              {lettersOfTheDay.centerLetter}
+            </div>
+          </button>
+        </div>
 
-      <div className="flex absolute bottom-28 items-center w-[80%] justify-around">
-        <button onClick={deleteLetter} className={bottomBtnClassName}>
-          Delete
-        </button>
-        <button
-          onClick={() =>
-            setLettersOfTheDay(p => ({
-              ...p,
-              letters: shuffle(p.letters),
-            }))
-          }
-          className={bottomBtnClassName}
-        >
-          <RotateRightIcon />
-        </button>
-        <button onClick={handleEnter} className={bottomBtnClassName}>
-          Enter
-        </button>
+        <div className="flex absolute bottom-28 items-center w-[80%] justify-around">
+          <button onClick={deleteLetter} className={bottomBtnClassName}>
+            Delete
+          </button>
+          <button
+            onClick={() =>
+              setLettersOfTheDay(p => ({
+                ...p,
+                letters: shuffle(p.letters),
+              }))
+            }
+            className={bottomBtnClassName}
+          >
+            <RotateRightIcon />
+          </button>
+          <button onClick={handleEnter} className={bottomBtnClassName}>
+            Enter
+          </button>
+        </div>
       </div>
-    </div>
+    </>
   )
 }
