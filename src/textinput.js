@@ -1,30 +1,42 @@
 import useInterval from "./useInterval"
 import useVis from "./useVis"
-import React, { useState, useEffect } from "react"
+import { useState, useEffect } from "react"
+import useEventListener from "./useeventlistener"
 
-function TextInput({ inputText, textColor, addLetter, deleteLetter }) {
+export default function TextInput({
+  inputText,
+  textColor,
+  addLetter,
+  deleteLetter,
+  handleEnter,
+  canEnterBePressed,
+}) {
   let caretVis = useVis(true)
   let [delay, setDelay] = useState(500)
+  useEventListener("keyup", handleKey)
   useInterval(caretVis.toggle, delay, caretVis.show)
   //reinstate the caret blink
   useEffect(() => {
     setDelay(500)
   }, [inputText])
 
-  let handleKey = e => {
-    if (e.key === "Control" || e.key === "Shift" || e.key === "Meta") return
+  function handleKey(e) {
+    if (
+      e.key === "Control" ||
+      e.key === "Shift" ||
+      e.key === "Meta" ||
+      !canEnterBePressed
+    )
+      return
     let key = e.key.toUpperCase()
     if (key === "BACKSPACE" || key === "DELETE") {
       return deleteLetter()
     }
-    setDelay(null)
-    addLetter(key)()
+    if (key === "ENTER") {
+      return handleEnter()
+    }
+    addLetter(key)(() => setDelay(null))
   }
-
-  useEffect(() => {
-    window.addEventListener("keyup", handleKey)
-    return () => window.removeEventListener("keyup", handleKey)
-  }, [])
 
   return (
     <div className="w-80 h-10 flex items-center px-4">
@@ -41,5 +53,3 @@ function TextInput({ inputText, textColor, addLetter, deleteLetter }) {
     </div>
   )
 }
-
-export default React.memo(TextInput)

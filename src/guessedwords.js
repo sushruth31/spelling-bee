@@ -14,20 +14,21 @@ export default function GuessedWords({ guessedWords, isOpen, toggle }) {
           "border w-[80%] bg-white flex px-2 justify-between border-zinc-300 cursor-pointer"
         }
       >
-        {!guessedWords.length || !isOpen ? (
-          <div className="text-zinc-500">Your words</div>
+        {!isOpen ? (
+          <div>Your words...</div>
         ) : (
-          <div className="flex flex-col">
-            <div className="mb-10">
-              You have found {guessedWords.length} words:{" "}
+          <>
+            <div>You have found {guessedWords.length} words</div>
+            <div className="flex flex-col">
+              <ul>
+                {guessedWords.map(word => {
+                  return <li key={word}>{word}</li>
+                })}
+              </ul>
             </div>
-            <ul>
-              {guessedWords.map(word => (
-                <li key={word}>{word}</li>
-              ))}
-            </ul>
-          </div>
+          </>
         )}
+
         <KeyboardArrowDownIcon />
       </div>
     </div>

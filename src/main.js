@@ -87,7 +87,6 @@ function createWordBank(lettersOfTheDay) {
 export default function Main() {
   let [lettersOfTheDay, setLettersOfTheDay] = useState(createLettersOfTheDay)
   let dropdown = useVis()
-  console.log(dropdown.visible)
   let [wordBank, setWordBank] = useState(() =>
     createWordBank([
       ...lettersOfTheDay.letters,
@@ -118,31 +117,32 @@ export default function Main() {
   let centerStyle = createStyle(hCenter, wMid, {})
   let [inputText, setInputText] = useState([])
   let [error, setError] = useState("")
+  let [canEnterBePressed, setCanEnterBePressed] = useState(true)
 
   let deleteLetter = () => {
     setInputText(p => p.slice(0, p.length - 1))
   }
-  let addLetter = ltr => () => {
+  let addLetter = ltr => f => {
+    typeof f === "function" && f()
     setInputText(p => [...p, ltr])
   }
 
-  let textColor = useCallback(
-    ltr => {
-      if (ltr === lettersOfTheDay.centerLetter) {
-        return "#f7da21"
-      }
-      if (lettersOfTheDay.letters.includes(ltr)) {
-        return "black"
-      }
-      return "#e6e6e6"
-    },
-    [lettersOfTheDay]
-  )
+  let textColor = ltr => {
+    if (ltr === lettersOfTheDay.centerLetter) {
+      return "#f7da21"
+    }
+    if (lettersOfTheDay.letters.includes(ltr)) {
+      return "black"
+    }
+    return "#e6e6e6"
+  }
 
   let fireError = txt => {
     setError(txt)
+    setCanEnterBePressed(false)
+    setTimeout(() => setError(""), 800)
     setTimeout(() => setInputText([]), 1000)
-    setTimeout(() => setError(""), 500)
+    setTimeout(() => setCanEnterBePressed(true), 1500)
   }
 
   let bottomBtnClassName =
@@ -190,9 +190,11 @@ export default function Main() {
         )}
         <TextInput
           addLetter={addLetter}
+          canEnterBePressed={canEnterBePressed}
           deleteLetter={deleteLetter}
           textColor={textColor}
           inputText={inputText}
+          handleEnter={handleEnter}
         />
         <div style={{ top: 200 }}>
           {lettersOfTheDay.letters.map((ltr, i) => {
