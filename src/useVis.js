@@ -1,14 +1,15 @@
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useState } from "react"
 
 export default function useVis(init = false, modalRefs = []) {
   let [visible, setVisible] = useState(init)
   let show = () => setVisible(true)
   let hide = () => setVisible(false)
-  let toggle = () => setVisible(p => !p)
+  let toggle = val => setVisible(p => (typeof val === "boolean" ? val : !p))
 
   useEffect(() => {
     let handler = e => {
       if (
+        !modalRefs.length ||
         modalRefs.some(
           ref => ref.current === e.target || ref.current?.contains(e.target)
         )

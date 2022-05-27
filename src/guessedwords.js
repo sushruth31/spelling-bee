@@ -1,18 +1,33 @@
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown"
 
-export default function GuessedWords({ guessedWords, open, toggle }) {
-  let height = open ? "h-[560px]" : ""
-
+export default function GuessedWords({ guessedWords, isOpen, toggle }) {
   return (
-    <div className="flex mt-10 items-center w-full justify-center">
+    <div className="flex absolute top-60 items-center w-full justify-center">
       <div
-        style={{ zIndex: 5000 }}
+        onClick={toggle}
+        style={{
+          zIndex: 5000,
+          height: isOpen ? 560 : 40,
+          alignItems: isOpen ? "start" : "center",
+        }}
         className={
-          "border w-[80%] bg-white flex justify-end border-black cursor-pointer" +
-          " " +
-          height
+          "border w-[80%] bg-white flex px-2 justify-between border-zinc-300 cursor-pointer"
         }
       >
+        {!guessedWords.length || !isOpen ? (
+          <div className="text-zinc-500">Your words</div>
+        ) : (
+          <div className="flex flex-col">
+            <div className="mb-10">
+              You have found {guessedWords.length} words:{" "}
+            </div>
+            <ul>
+              {guessedWords.map(word => (
+                <li key={word}>{word}</li>
+              ))}
+            </ul>
+          </div>
+        )}
         <KeyboardArrowDownIcon />
       </div>
     </div>

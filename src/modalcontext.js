@@ -1,22 +1,24 @@
 import { createContext, useContext, useState } from "react"
-
+import Modal from "./modal"
+import useVis from "./useVis"
 const ModalContext = createContext()
 
 export const ModalProvider = ({ children }) => {
-  let [isOpen, setIsOpen] = useState(false)
+  let o = useVis(false)
   let [content, setContent] = useState(null)
 
-  let closeModal = () => setIsOpen(false)
-
   let handleModal = content => e => {
-    setIsOpen(p => !p)
+    o.toggle()
     if (content) {
       setContent(content)
     }
   }
 
   return (
-    <ModalContext.Provider value={{ isOpen, handleModal, content, closeModal }}>
+    <ModalContext.Provider
+      value={{ isOpen: o.visible, handleModal, content, closeModal: o.hide }}
+    >
+      <Modal />
       {children}
     </ModalContext.Provider>
   )

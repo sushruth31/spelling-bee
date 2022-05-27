@@ -1,9 +1,10 @@
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useRef, useState, useCallback } from "react"
 import useVis from "./useVis"
 import englishWords from "./englishwords"
 import useInterval from "./useInterval"
 import RotateRightIcon from "@mui/icons-material/RotateRight"
 import GuessedWords from "./guessedwords"
+import TextInput from "./textinput"
 
 const NUM_LETTERS = 7
 
@@ -85,13 +86,15 @@ function createWordBank(lettersOfTheDay) {
 
 export default function Main() {
   let [lettersOfTheDay, setLettersOfTheDay] = useState(createLettersOfTheDay)
-  let drawer = useVis()
+  let dropdown = useVis()
+  console.log(dropdown.visible)
   let [wordBank, setWordBank] = useState(() =>
     createWordBank([
       ...lettersOfTheDay.letters,
       ...lettersOfTheDay.centerLetter,
     ])
   )
+  window.words = wordBank
   let [guessedWords, setGuessedWords] = useState([])
   let hTop = "445px"
   let h1 = "495px"
@@ -114,49 +117,27 @@ export default function Main() {
   let hexStyles = positions.map(p => createStyle(...p))
   let centerStyle = createStyle(hCenter, wMid, {})
   let [inputText, setInputText] = useState([])
-  let [delay, setDelay] = useState(500)
-  let caretVis = useVis(true)
   let [error, setError] = useState("")
 
   let deleteLetter = () => {
-    caretVis.show()
     setInputText(p => p.slice(0, p.length - 1))
   }
   let addLetter = ltr => () => {
-    setDelay(null)
     setInputText(p => [...p, ltr])
   }
 
-  //reinstate the caret blink
-  useEffect(() => {
-    setDelay(500)
-  }, [inputText])
-
-  useInterval(caretVis.toggle, delay, caretVis.show)
-
-  let handleKey = e => {
-    if (e.key === "Control" || e.key === "Shift" || e.key === "Meta") return
-    let key = e.key.toUpperCase()
-    if (key === "BACKSPACE" || key === "DELETE") {
-      return deleteLetter()
-    }
-    addLetter(key)()
-  }
-
-  useEffect(() => {
-    window.addEventListener("keyup", handleKey)
-    return () => window.removeEventListener("keyup", handleKey)
-  }, [])
-
-  let textColor = ltr => {
-    if (ltr === lettersOfTheDay.centerLetter) {
-      return "#f7da21"
-    }
-    if (lettersOfTheDay.letters.includes(ltr)) {
-      return "black"
-    }
-    return "#e6e6e6"
-  }
+  let textColor = useCallback(
+    ltr => {
+      if (ltr === lettersOfTheDay.centerLetter) {
+        return "#f7da21"
+      }
+      if (lettersOfTheDay.letters.includes(ltr)) {
+        return "black"
+      }
+      return "#e6e6e6"
+    },
+    [lettersOfTheDay]
+  )
 
   let fireError = txt => {
     setError(txt)
@@ -196,24 +177,23 @@ export default function Main() {
 
   return (
     <>
-      <GuessedWords guessedWords={guessedWords} />
+      <GuessedWords
+        isOpen={dropdown.visible}
+        toggle={dropdown.toggle}
+        guessedWords={guessedWords}
+      />
       <div className="flex flex-col items-center justify-center p-20">
         {error && (
           <div className="absolute bg-black text-white top-52 rounded p-2">
             {error}
           </div>
         )}
-        <div className="w-80 h-10 flex items-center px-4">
-          {inputText.map(ltr => (
-            <div
-              style={{ color: textColor(ltr) }}
-              className={`font-bold text-3xl`}
-            >
-              {ltr}
-            </div>
-          ))}
-          {caretVis.visible && <div className="h-full w-1 bg-[#f7da21]"></div>}
-        </div>
+        <TextInput
+          addLetter={addLetter}
+          deleteLetter={deleteLetter}
+          textColor={textColor}
+          inputText={inputText}
+        />
         <div style={{ top: 200 }}>
           {lettersOfTheDay.letters.map((ltr, i) => {
             return (
