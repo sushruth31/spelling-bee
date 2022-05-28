@@ -5,38 +5,18 @@ import useEventListener from "./useeventlistener"
 
 export default function TextInput({
   inputText,
+  delay,
+  setDelay,
   textColor,
-  addLetter,
-  deleteLetter,
-  handleEnter,
-  canEnterBePressed,
+  handleKey,
 }) {
   let caretVis = useVis(true)
-  let [delay, setDelay] = useState(500)
   useEventListener("keyup", handleKey)
   useInterval(caretVis.toggle, delay, caretVis.show)
   //reinstate the caret blink
   useEffect(() => {
     setDelay(500)
   }, [inputText])
-
-  function handleKey(e) {
-    if (
-      e.key === "Control" ||
-      e.key === "Shift" ||
-      e.key === "Meta" ||
-      !canEnterBePressed
-    )
-      return
-    let key = e.key.toUpperCase()
-    if (key === "BACKSPACE" || key === "DELETE") {
-      return deleteLetter()
-    }
-    if (key === "ENTER") {
-      return handleEnter()
-    }
-    addLetter(key)(() => setDelay(null))
-  }
 
   return (
     <div className="w-80 h-10 flex items-center px-4">

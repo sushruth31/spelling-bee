@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState, useCallback } from "react"
 import useVis from "./useVis"
 import englishWords from "./englishwords"
-import useInterval from "./useInterval"
 import RotateRightIcon from "@mui/icons-material/RotateRight"
 import GuessedWords from "./guessedwords"
 import TextInput from "./textinput"
+import Buttons from "./buttons"
 
 const NUM_LETTERS = 7
 
@@ -117,6 +117,7 @@ export default function Main() {
   let centerStyle = createStyle(hCenter, wMid, {})
   let [inputText, setInputText] = useState([])
   let [error, setError] = useState("")
+  let [delay, setDelay] = useState(500)
   let [canEnterBePressed, setCanEnterBePressed] = useState(true)
 
   let deleteLetter = () => {
@@ -145,9 +146,6 @@ export default function Main() {
     setTimeout(() => setCanEnterBePressed(true), 1500)
   }
 
-  let bottomBtnClassName =
-    "border border-zinc-300 rounded-3xl py-2 px-6 active:bg-zinc-300"
-
   let handleEnter = () => {
     if (!inputText.length) return
 
@@ -175,6 +173,38 @@ export default function Main() {
     setInputText([])
   }
 
+  function rotateWords() {
+    setLettersOfTheDay(p => ({
+      ...p,
+      letters: shuffle(p.letters),
+    }))
+  }
+
+  function handleKey(e) {
+    if (
+      e.key === "Control" ||
+      e.key === "Shift" ||
+      e.key === "Meta" ||
+      !canEnterBePressed
+    )
+      return
+    let key = e.key.toUpperCase()
+    if (key === "BACKSPACE" || key === "DELETE") {
+      deleteRef.current.classList.add("active")
+      console.log(deleteRef.current.classList)
+      deleteRef.current.click()
+      return
+    }
+    if (key === "ENTER") {
+      return enterRef.current.click()
+    }
+    addLetter(key)(() => setDelay(null))
+  }
+
+  let deleteRef = useRef(null)
+  let enterRef = useRef(null)
+  let btnsRef = useRef({ deleteRef, enterRef })
+
   return (
     <>
       <GuessedWords
@@ -189,12 +219,11 @@ export default function Main() {
           </div>
         )}
         <TextInput
-          addLetter={addLetter}
-          canEnterBePressed={canEnterBePressed}
-          deleteLetter={deleteLetter}
-          textColor={textColor}
           inputText={inputText}
-          handleEnter={handleEnter}
+          delay={delay}
+          setDelay={setDelay}
+          handleKey={handleKey}
+          textColor={textColor}
         />
         <div style={{ top: 200 }}>
           {lettersOfTheDay.letters.map((ltr, i) => {
@@ -219,25 +248,12 @@ export default function Main() {
           </button>
         </div>
 
-        <div className="flex absolute bottom-28 items-center w-[80%] justify-around">
-          <button onClick={deleteLetter} className={bottomBtnClassName}>
-            Delete
-          </button>
-          <button
-            onClick={() =>
-              setLettersOfTheDay(p => ({
-                ...p,
-                letters: shuffle(p.letters),
-              }))
-            }
-            className={bottomBtnClassName}
-          >
-            <RotateRightIcon />
-          </button>
-          <button onClick={handleEnter} className={bottomBtnClassName}>
-            Enter
-          </button>
-        </div>
+        <Buttons
+          ref={btnsRef}
+          handleEnter={handleEnter}
+          deleteLetter={deleteLetter}
+          rotateWords={rotateWords}
+        />
       </div>
     </>
   )
