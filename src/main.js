@@ -181,29 +181,23 @@ export default function Main() {
   }
 
   function handleKey(e) {
-    if (
-      e.key === "Control" ||
-      e.key === "Shift" ||
-      e.key === "Meta" ||
-      !canEnterBePressed
-    )
-      return
+    if (e.key === "Control" || e.key === "Shift" || e.key === "Meta") return
     let key = e.key.toUpperCase()
     if (key === "BACKSPACE" || key === "DELETE") {
-      deleteRef.current.classList.add("active")
-      console.log(deleteRef.current.classList)
-      deleteRef.current.click()
-      return
+      return btnRef.current.delete()
     }
+    if (key === "ENTER" && canEnterBePressed) {
+      return btnRef.current.enter()
+    }
+
     if (key === "ENTER") {
-      return enterRef.current.click()
+      return btnRef.current.enterNoOp()
     }
+
     addLetter(key)(() => setDelay(null))
   }
 
-  let deleteRef = useRef(null)
-  let enterRef = useRef(null)
-  let btnsRef = useRef({ deleteRef, enterRef })
+  let btnRef = useRef(null)
 
   return (
     <>
@@ -249,7 +243,7 @@ export default function Main() {
         </div>
 
         <Buttons
-          ref={btnsRef}
+          ref={btnRef}
           handleEnter={handleEnter}
           deleteLetter={deleteLetter}
           rotateWords={rotateWords}
