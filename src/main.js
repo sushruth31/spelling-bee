@@ -4,7 +4,8 @@ import englishWords from "./englishwords"
 import GuessedWords from "./guessedwords"
 import TextInput from "./textinput"
 import Buttons from "./buttons"
-import { CastConnectedSharp } from "@mui/icons-material"
+import { Hexagon } from "@mui/icons-material"
+import Hexagons from "./hexagons"
 
 const NUM_LETTERS = 7
 
@@ -27,18 +28,18 @@ function pickRandom(arr) {
 }
 
 function getUniqueLetters(arr, number) {
-  let letters = []
+  let letters = new Set()
   for (let i = 0; i < number; i++) {
     let ltr
     while (!ltr) {
       let attempt = pickRandom(arr)
-      if (!letters.includes(attempt)) {
+      if (!letters.has(attempt)) {
         ltr = attempt
       }
     }
-    letters.push(ltr)
+    letters.add(ltr)
   }
-  return letters
+  return [...letters]
 }
 
 function createLettersOfTheDay() {
@@ -50,87 +51,55 @@ function createLettersOfTheDay() {
   //create the word. 2 or 3 vowels
 
   let numOfVowels = Math.random() > 0.5 ? 2 : 3
-  let letters = shuffle([
+  let outerLetters = shuffle([
     ...getUniqueLetters(vowels, numOfVowels),
     ...getUniqueLetters(consts, NUM_LETTERS - numOfVowels),
   ])
   //pop off center letter
-  let centerLetter = letters.shift()
-  if (createWordBank(letters, centerLetter).length < 4) {
+  let centerLetter = outerLetters.shift()
+  if (createWordBank(outerLetters, centerLetter).length < 4) {
     //return createLettersOfTheDay()
   }
   return {
-    letters,
+    outerLetters,
     centerLetter,
     timestamp: new Date().getTime(),
   }
 }
-
-let createStyle = (top, left, style) => ({
-  top,
-  left,
-  ...style,
-})
 
 function isWordInDict(word, dict) {
   //check this word against words in dict
   return dict.some(w => w.toLowerCase() === word.toLowerCase())
 }
 
-function createWordBank(lettersOfTheDay, centerLetter) {
-  lettersOfTheDay = lettersOfTheDay.map(l => l.toLowerCase())
+function createWordBank(outerLetters, centerLetter) {
+  outerLetters = outerLetters.map(l => l.toLowerCase())
   centerLetter = centerLetter.toLowerCase()
   let dict = englishWords
     .map(word => word.toLowerCase())
     .filter(word => word.includes(centerLetter))
 
-  let res = []
-
-  for (let dictWord of dict) {
-    if (
-      [...dictWord].every(ltr => {
-        //remove the center letter
-        let filteredLtr = [...ltr].filter(l => l !== centerLetter)
-        return filteredLtr.every(l => lettersOfTheDay.includes(l))
-      })
-    ) {
-      res.push(dictWord)
-    }
-  }
-
-  return res
+  let search = new Set([...outerLetters, centerLetter])
+  let results = dict.filter(dictWord =>
+    [...dictWord].every(ltr => search.has(ltr))
+  )
+  return !results.length ? createWordBank(outerLetters, centerLetter) : results
 }
 
 export default function Main() {
   let [lettersOfTheDay, setLettersOfTheDay] = useState(createLettersOfTheDay)
   let dropdown = useVis()
   let wordBank = useMemo(
-    () => createWordBank(lettersOfTheDay.letters, lettersOfTheDay.centerLetter),
+    () =>
+      createWordBank(
+        lettersOfTheDay.outerLetters,
+        lettersOfTheDay.centerLetter
+      ),
     []
   )
 
   window.words = wordBank
   let [guessedWords, setGuessedWords] = useState([])
-  let hTop = "445px"
-  let h1 = "495px"
-  let h2 = "600px"
-  let hBottom = "655px"
-  let hCenter = "550px"
-  let wLeft = "100px"
-  let wMid = "200px",
-    wRight = "300px"
-
-  let positions = [
-    [hTop, wMid],
-    [h1, wRight],
-    [h2, wRight],
-    [hBottom, wMid],
-    [h2, wLeft],
-    [h1, wLeft],
-  ]
-
-  let hexStyles = positions.map(p => createStyle(...p))
-  let centerStyle = createStyle(hCenter, wMid, {})
   let [inputText, setInputText] = useState([])
   let [error, setError] = useState("")
   let [delay, setDelay] = useState(500)
@@ -148,7 +117,7 @@ export default function Main() {
     if (ltr === lettersOfTheDay.centerLetter) {
       return "#f7da21"
     }
-    if (lettersOfTheDay.letters.includes(ltr)) {
+    if (lettersOfTheDay.outerLetters.includes(ltr)) {
       return "black"
     }
     return "#e6e6e6"
@@ -192,7 +161,7 @@ export default function Main() {
   function rotateWords() {
     setLettersOfTheDay(p => ({
       ...p,
-      letters: shuffle(p.letters),
+      letters: shuffle(p.outerLetters),
     }))
   }
 
@@ -235,28 +204,7 @@ export default function Main() {
           handleKey={handleKey}
           textColor={textColor}
         />
-        <div style={{ top: 200 }}>
-          {lettersOfTheDay.letters.map((ltr, i) => {
-            return (
-              <button
-                onClick={addLetter(ltr)}
-                style={hexStyles[i]}
-                className="hexagon flex items-center justify-center"
-              >
-                <div className="font-bold text-3xl">{ltr}</div>
-              </button>
-            )
-          })}
-          <button
-            onClick={addLetter(lettersOfTheDay.centerLetter)}
-            className="hexagonCenter flex items-center justify-center "
-            style={centerStyle}
-          >
-            <div className="font-bold text-3xl">
-              {lettersOfTheDay.centerLetter}
-            </div>
-          </button>
-        </div>
+        <Hexagons addLetter={addLetter} lettersOfTheDay={lettersOfTheDay} />
 
         <Buttons
           ref={btnRef}

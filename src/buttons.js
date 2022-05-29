@@ -14,7 +14,6 @@ const ButtonNames = {
 
 function Buttons({ rotateWords, deleteLetter, handleEnter }, ref) {
   let [clicked, setClicked] = useState(null)
-  let btnRef = useRef()
   let bottomBtnClassName =
     "border border-zinc-300 rounded-3xl py-2 px-6 active:bg-zinc-300"
   let activeClassName =
@@ -22,7 +21,6 @@ function Buttons({ rotateWords, deleteLetter, handleEnter }, ref) {
 
   useImperativeHandle(ref, () => ({
     delete: () => {
-      btnRef.current.click()
       deleteLetter()
       setClicked(ButtonNames.DELETE)
       setTimeout(() => setClicked(null), 100)
@@ -43,7 +41,10 @@ function Buttons({ rotateWords, deleteLetter, handleEnter }, ref) {
 
   return (
     <div className="flex absolute bottom-28 items-center w-[80%] justify-around">
-      <button ref={btnRef} className={createClassName(ButtonNames.DELETE)}>
+      <button
+        onClick={deleteLetter}
+        className={createClassName(ButtonNames.DELETE)}
+      >
         Delete
       </button>
       <button onClick={rotateWords} className={bottomBtnClassName}>
