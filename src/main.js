@@ -1,10 +1,10 @@
-import { useEffect, useRef, useState, useCallback } from "react"
+import { useEffect, useRef, useState, useCallback, useMemo } from "react"
 import useVis from "./useVis"
 import englishWords from "./englishwords"
-import RotateRightIcon from "@mui/icons-material/RotateRight"
 import GuessedWords from "./guessedwords"
 import TextInput from "./textinput"
 import Buttons from "./buttons"
+import { CastConnectedSharp } from "@mui/icons-material"
 
 const NUM_LETTERS = 7
 
@@ -22,12 +22,16 @@ function getRandomNumber(max, min = 0) {
   return Math.floor(rand * diff) + min
 }
 
+function pickRandom(arr) {
+  return arr[getRandomNumber(arr.length)]
+}
+
 function getUniqueLetters(arr, number) {
   let letters = []
   for (let i = 0; i < number; i++) {
     let ltr
     while (!ltr) {
-      let attempt = arr[getRandomNumber(arr.length)]
+      let attempt = pickRandom(arr)
       if (!letters.includes(attempt)) {
         ltr = attempt
       }
@@ -45,17 +49,16 @@ function createLettersOfTheDay() {
 
   //create the word. 2 or 3 vowels
 
-  let numOfVowels = Math.random() > 0.5 ? 3 : 2
+  let numOfVowels = Math.random() > 0.5 ? 2 : 3
   let letters = shuffle([
     ...getUniqueLetters(vowels, numOfVowels),
     ...getUniqueLetters(consts, NUM_LETTERS - numOfVowels),
   ])
-
-  if (createWordBank(letters) < 5) {
-    return createLettersOfTheDay()
-  }
-
+  //pop off center letter
   let centerLetter = letters.shift()
+  if (createWordBank(letters, centerLetter).length < 4) {
+    //return createLettersOfTheDay()
+  }
   return {
     letters,
     centerLetter,
@@ -74,25 +77,38 @@ function isWordInDict(word, dict) {
   return dict.some(w => w.toLowerCase() === word.toLowerCase())
 }
 
-function createWordBank(lettersOfTheDay) {
-  return englishWords.filter(word =>
-    word
-      .split("")
-      .every(ltr =>
-        lettersOfTheDay.map(l => l.toLowerCase()).includes(ltr.toLowerCase())
-      )
-  )
+function createWordBank(lettersOfTheDay, centerLetter) {
+  lettersOfTheDay = lettersOfTheDay.map(l => l.toLowerCase())
+  centerLetter = centerLetter.toLowerCase()
+  let dict = englishWords
+    .map(word => word.toLowerCase())
+    .filter(word => word.includes(centerLetter))
+
+  let res = []
+
+  for (let dictWord of dict) {
+    if (
+      [...dictWord].every(ltr => {
+        //remove the center letter
+        let filteredLtr = [...ltr].filter(l => l !== centerLetter)
+        return filteredLtr.every(l => lettersOfTheDay.includes(l))
+      })
+    ) {
+      res.push(dictWord)
+    }
+  }
+
+  return res
 }
 
 export default function Main() {
   let [lettersOfTheDay, setLettersOfTheDay] = useState(createLettersOfTheDay)
   let dropdown = useVis()
-  let [wordBank, setWordBank] = useState(() =>
-    createWordBank([
-      ...lettersOfTheDay.letters,
-      ...lettersOfTheDay.centerLetter,
-    ])
+  let wordBank = useMemo(
+    () => createWordBank(lettersOfTheDay.letters, lettersOfTheDay.centerLetter),
+    []
   )
+
   window.words = wordBank
   let [guessedWords, setGuessedWords] = useState([])
   let hTop = "445px"
@@ -248,6 +264,7 @@ export default function Main() {
           deleteLetter={deleteLetter}
           rotateWords={rotateWords}
         />
+        <div>{JSON.stringify(wordBank)}</div>
       </div>
     </>
   )
