@@ -4,10 +4,23 @@ import englishWords from "./englishwords"
 import GuessedWords from "./guessedwords"
 import TextInput from "./textinput"
 import Buttons from "./buttons"
-import { Hexagon } from "@mui/icons-material"
 import Hexagons from "./hexagons"
+import ScoreSteps from "./scoresteps"
 
 const NUM_LETTERS = 7
+
+export function calculateScore(words) {
+  return words.reduce((score, word) => {
+    if (word.length < 4) {
+      throw Error("this should not happen")
+    }
+    if (word.length === 4) {
+      return ++score
+    } else {
+      return score + word.length
+    }
+  }, 0)
+}
 
 function shuffle(arr) {
   for (let i = 0; i < arr.length; i++) {
@@ -197,6 +210,10 @@ export default function Main() {
             {error}
           </div>
         )}
+        <ScoreSteps
+          wordBank={wordBank}
+          score={calculateScore(["hello", "world"])}
+        />
         <TextInput
           inputText={inputText}
           delay={delay}

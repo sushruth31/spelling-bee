@@ -1,6 +1,13 @@
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown"
+import { Divider, ListItem } from "@mui/material"
 
-export default function GuessedWords({ guessedWords, isOpen, toggle }) {
+function capFirstCase(word) {
+  return word[0].toUpperCase() + word.slice(1).toLowerCase()
+}
+
+export default function GuessedWords({ guessedWords = [], isOpen, toggle }) {
+  guessedWords = ["hello", "james"]
+  guessedWords = guessedWords.map(capFirstCase)
   return (
     <div className="flex absolute top-60 items-center w-full justify-center">
       <div
@@ -17,16 +24,24 @@ export default function GuessedWords({ guessedWords, isOpen, toggle }) {
         {!isOpen ? (
           <div>Your words...</div>
         ) : (
-          <>
-            <div>You have found {guessedWords.length} words</div>
+          <div className="flex flex-col">
+            <div className="mb-12">
+              You have found {guessedWords.length}{" "}
+              {guessedWords.length === 1 ? "word" : "words"}:
+            </div>
             <div className="flex flex-col">
               <ul>
-                {guessedWords.map(word => {
-                  return <li key={word}>{word}</li>
+                {guessedWords.map((word, i) => {
+                  return (
+                    <>
+                      <ListItem key={word}>{word}</ListItem>
+                      {i !== guessedWords.length - 1 && <Divider />}
+                    </>
+                  )
                 })}
               </ul>
             </div>
-          </>
+          </div>
         )}
 
         <KeyboardArrowDownIcon />
