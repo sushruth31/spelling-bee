@@ -6,10 +6,9 @@ function capFirstCase(word) {
 }
 
 export default function GuessedWords({ guessedWords = [], isOpen, toggle }) {
-  guessedWords = ["hello", "james"]
   guessedWords = guessedWords.map(capFirstCase)
   return (
-    <div className="flex absolute top-60 items-center w-full justify-center">
+    <div className="flex items-center w-full justify-center">
       <div
         onClick={toggle}
         style={{
@@ -18,11 +17,24 @@ export default function GuessedWords({ guessedWords = [], isOpen, toggle }) {
           alignItems: isOpen ? "start" : "center",
         }}
         className={
-          "border w-[80%] bg-white flex px-2 justify-between border-zinc-300 cursor-pointer"
+          "border w-full bg-white flex px-2 justify-between border-zinc-300 cursor-pointer"
         }
       >
         {!isOpen ? (
-          <div>Your words...</div>
+          <>
+            {!guessedWords.length ? (
+              <div>Your words...</div>
+            ) : (
+              <div className="flex">
+                {guessedWords.slice(-6).map(w => (
+                  <div className="mr-4" key={w}>
+                    {w}
+                  </div>
+                ))}
+                {guessedWords.length > 5 && <>...</>}
+              </div>
+            )}
+          </>
         ) : (
           <div className="flex flex-col">
             <div className="mb-12">

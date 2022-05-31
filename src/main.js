@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback, useMemo } from "react"
+import { useRef, useState, useMemo, useEffect } from "react"
 import useVis from "./useVis"
 import englishWords from "./englishwords"
 import GuessedWords from "./guessedwords"
@@ -8,6 +8,8 @@ import Hexagons from "./hexagons"
 import ScoreSteps from "./scoresteps"
 
 const NUM_LETTERS = 7
+export const YELLOW = "#f7da21"
+export const GREY = "#e6e6e6"
 
 export function calculateScore(words) {
   return words.reduce((score, word) => {
@@ -70,9 +72,7 @@ function createLettersOfTheDay() {
   ])
   //pop off center letter
   let centerLetter = outerLetters.shift()
-  if (createWordBank(outerLetters, centerLetter).length < 4) {
-    //return createLettersOfTheDay()
-  }
+
   return {
     outerLetters,
     centerLetter,
@@ -96,7 +96,9 @@ function createWordBank(outerLetters, centerLetter) {
   let results = dict.filter(dictWord =>
     [...dictWord].every(ltr => search.has(ltr))
   )
-  return !results.length ? createWordBank(outerLetters, centerLetter) : results
+  return results.length < 4
+    ? createWordBank(outerLetters, centerLetter)
+    : results
 }
 
 export default function Main() {
@@ -111,12 +113,25 @@ export default function Main() {
     []
   )
 
-  window.words = wordBank
   let [guessedWords, setGuessedWords] = useState([])
   let [inputText, setInputText] = useState([])
   let [error, setError] = useState("")
   let [delay, setDelay] = useState(500)
   let [canEnterBePressed, setCanEnterBePressed] = useState(true)
+  let [isWinner, setIsWinner] = useState(false)
+
+  function handleWin() {
+    setIsWinner(true)
+    setInputText([]) //just in case
+    alert("you win!")
+  }
+
+  useEffect(() => {
+    //check if all words are guessed. win
+    if (guessedWords.length === wordBank.length) {
+      handleWin()
+    }
+  }, [guessedWords])
 
   let deleteLetter = () => {
     setInputText(p => p.slice(0, p.length - 1))
@@ -198,7 +213,8 @@ export default function Main() {
   let btnRef = useRef(null)
 
   return (
-    <>
+    <div className="p-2">
+      <ScoreSteps wordBank={wordBank} score={calculateScore(guessedWords)} />
       <GuessedWords
         isOpen={dropdown.visible}
         toggle={dropdown.toggle}
@@ -210,15 +226,11 @@ export default function Main() {
             {error}
           </div>
         )}
-        <ScoreSteps
-          wordBank={wordBank}
-          score={calculateScore(["hello", "world"])}
-        />
         <TextInput
           inputText={inputText}
           delay={delay}
           setDelay={setDelay}
-          handleKey={handleKey}
+          handleKey={isWinner ? () => {} : handleKey}
           textColor={textColor}
         />
         <Hexagons addLetter={addLetter} lettersOfTheDay={lettersOfTheDay} />
@@ -231,6 +243,6 @@ export default function Main() {
         />
         <div>{JSON.stringify(wordBank)}</div>
       </div>
-    </>
+    </div>
   )
 }
