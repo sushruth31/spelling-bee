@@ -57,6 +57,28 @@ function getUniqueLetters(arr, number) {
   return [...letters]
 }
 
+function loadData(key) {
+  try {
+    let data = JSON.parse(localStorage.getItem(key))
+    let currTime = new Date().getTime()
+    //check timestamp. if no good return createletters
+    if (!data.timestamp || currTime > data.timestamp) {
+      throw Error("no timestamp. creating new letters...")
+    }
+    return data
+  } catch {
+    return createLettersOfTheDay()
+  }
+}
+
+function saveData(key, payload) {
+  try {
+    localStorage.setItem(key, JSON.stringify(payload))
+  } catch {
+    console.warn("could not save data")
+  }
+}
+
 function createLettersOfTheDay() {
   let vowels = ["A", "E", "I", "O", "U"]
   let consts = Array.from(Array(26))
@@ -76,7 +98,8 @@ function createLettersOfTheDay() {
   return {
     outerLetters,
     centerLetter,
-    timestamp: new Date().getTime(),
+    timestamp: new Date().getTime() + 87012000,
+    guessedWords: [],
   }
 }
 
@@ -102,7 +125,7 @@ function createWordBank(outerLetters, centerLetter) {
 }
 
 export default function Main() {
-  let [lettersOfTheDay, setLettersOfTheDay] = useState(createLettersOfTheDay)
+  let [lettersOfTheDay, setLettersOfTheDay] = useState(() => loadData("data"))
   let dropdown = useVis()
   let wordBank = useMemo(
     () =>
@@ -113,7 +136,7 @@ export default function Main() {
     []
   )
 
-  let [guessedWords, setGuessedWords] = useState([])
+  let [guessedWords, setGuessedWords] = useState(lettersOfTheDay.guessedWords)
   let [inputText, setInputText] = useState([])
   let [error, setError] = useState("")
   let [delay, setDelay] = useState(500)
@@ -182,7 +205,11 @@ export default function Main() {
   }
 
   function addToWordList() {
-    setGuessedWords(p => [...p, inputText.join("")])
+    setGuessedWords(p => {
+      let guessedWords = [...p, inputText.join("")]
+      saveData("data", { ...lettersOfTheDay, guessedWords })
+      return guessedWords
+    })
     setInputText([])
   }
 
