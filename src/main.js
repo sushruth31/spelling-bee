@@ -6,8 +6,8 @@ import TextInput from "./textinput"
 import Buttons from "./buttons"
 import Hexagons from "./hexagons"
 import ScoreSteps from "./scoresteps"
+import { shuffle } from "./App"
 
-const NUM_LETTERS = 7
 export const YELLOW = "#f7da21"
 export const GREY = "#e6e6e6"
 
@@ -24,82 +24,11 @@ export function calculateScore(words) {
   }, 0)
 }
 
-function shuffle(arr) {
-  for (let i = 0; i < arr.length; i++) {
-    let idxToShuffle = getRandomNumber(arr.length)
-    ;[arr[i], arr[idxToShuffle]] = [arr[idxToShuffle], arr[i]]
-  }
-  return arr
-}
-
-function getRandomNumber(max, min = 0) {
-  let diff = max - min
-  let rand = Math.random()
-  return Math.floor(rand * diff) + min
-}
-
-function pickRandom(arr) {
-  return arr[getRandomNumber(arr.length)]
-}
-
-function getUniqueLetters(arr, number) {
-  let letters = new Set()
-  for (let i = 0; i < number; i++) {
-    let ltr
-    while (!ltr) {
-      let attempt = pickRandom(arr)
-      if (!letters.has(attempt)) {
-        ltr = attempt
-      }
-    }
-    letters.add(ltr)
-  }
-  return [...letters]
-}
-
-function loadData(key) {
-  try {
-    let data = JSON.parse(localStorage.getItem(key))
-    let currTime = new Date().getTime()
-    //check timestamp. if no good return createletters
-    if (!data.timestamp || currTime > data.timestamp) {
-      throw Error("no timestamp. creating new letters...")
-    }
-    return data
-  } catch {
-    return createLettersOfTheDay()
-  }
-}
-
 function saveData(key, payload) {
   try {
     localStorage.setItem(key, JSON.stringify(payload))
   } catch {
     console.warn("could not save data")
-  }
-}
-
-function createLettersOfTheDay() {
-  let vowels = ["A", "E", "I", "O", "U"]
-  let consts = Array.from(Array(26))
-    .map((_, i) => String.fromCharCode(i + 65))
-    .filter(l => !vowels.includes(l))
-
-  //create the word. 2 or 3 vowels
-
-  let numOfVowels = Math.random() > 0.5 ? 2 : 3
-  let outerLetters = shuffle([
-    ...getUniqueLetters(vowels, numOfVowels),
-    ...getUniqueLetters(consts, NUM_LETTERS - numOfVowels),
-  ])
-  //pop off center letter
-  let centerLetter = outerLetters.shift()
-
-  return {
-    outerLetters,
-    centerLetter,
-    timestamp: new Date().getTime() + 87012000,
-    guessedWords: [],
   }
 }
 
@@ -124,8 +53,7 @@ function createWordBank(outerLetters, centerLetter) {
     : results
 }
 
-export default function Main() {
-  let [lettersOfTheDay, setLettersOfTheDay] = useState(() => loadData("data"))
+export default function Main({ lettersOfTheDay, setLettersOfTheDay }) {
   let dropdown = useVis()
   let wordBank = useMemo(
     () =>
