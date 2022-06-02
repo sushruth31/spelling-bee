@@ -24,6 +24,14 @@ export function calculateScore(words) {
   }, 0)
 }
 
+function appendToState(newVal, f) {
+  return p => {
+    let newState = [...p, newVal]
+    typeof f === "function" && f(newState)
+    return newState
+  }
+}
+
 function saveData(key, payload) {
   try {
     localStorage.setItem(key, JSON.stringify(payload))
@@ -87,7 +95,15 @@ export default function Main({ lettersOfTheDay, setLettersOfTheDay }) {
   let deleteLetter = () => {
     setInputText(p => p.slice(0, p.length - 1))
   }
+
   let addLetter = ltr => f => {
+    if (!canEnterBePressed) {
+      timeoutRefs.current.forEach(clearTimeout)
+      //call the reset functions sync
+      setError("")
+      setCanEnterBePressed(true)
+      setInputText([])
+    }
     typeof f === "function" && f()
     setInputText(p => [...p, ltr])
   }
@@ -102,12 +118,16 @@ export default function Main({ lettersOfTheDay, setLettersOfTheDay }) {
     return "#e6e6e6"
   }
 
+  let timeoutRefs = useRef([])
+
   let fireError = txt => {
     setError(txt)
     setCanEnterBePressed(false)
-    setTimeout(() => setError(""), 800)
-    setTimeout(() => setInputText([]), 1000)
-    setTimeout(() => setCanEnterBePressed(true), 1500)
+    timeoutRefs.current.push(
+      setTimeout(() => setError(""), 800),
+      setTimeout(() => setInputText([]), 950),
+      setTimeout(() => setCanEnterBePressed(true), 1500)
+    )
   }
 
   let handleEnter = () => {
@@ -133,11 +153,11 @@ export default function Main({ lettersOfTheDay, setLettersOfTheDay }) {
   }
 
   function addToWordList() {
-    setGuessedWords(p => {
-      let guessedWords = [...p, inputText.join("")]
-      saveData("data", { ...lettersOfTheDay, guessedWords })
-      return guessedWords
-    })
+    setGuessedWords(
+      appendToState(inputText.join(""), guessedWords => {
+        saveData("data", { ...lettersOfTheDay, guessedWords })
+      })
+    )
     setInputText([])
   }
 
